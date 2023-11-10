@@ -15,19 +15,19 @@ import { Network } from './network';
 export interface Context {
     // Client is the underlying client to the daemon.
     client: Ref<DaemonClient>;
-    // Connections is a ref to the current list of connections.
-    connections: Ref<Array<Network>>;
+    // Network is a ref to the current list of networks.
+    networks: Ref<Array<Network>>;
     // Error is the last error that occurred.
     error: Ref<Error | null>;
-    // ListConnections lists the current connections. It also forces an
-    // update of the connections ref.
-    listConnections(): Promise<Array<Network>>;
-    // PutConnection stores the parameters for a connection.
-    putConnection(params: NetworkParameters): Promise<Network>;
-    // GetConnection returns the connection with the given ID.
+    // ListNetworks lists the current registered networks.
+    // It also forces an update of the networks ref.
+    listNetworks(): Promise<Array<Network>>;
+    // PutNetwork stores the parameters for a connection to a network.
+    putNetwork(params: NetworkParameters): Promise<Network>;
+    // GetNetwork returns the network connection with the given ID.
     // It is a convenience method for finding a connection in the
     // connections ref.
-    getConnection(id: string): Promise<Network>;
+    getNetwork(id: string): Promise<Network>;
     // Connect creates a new connection. If no ID is given or
     // it doesn't exist, it will first be registered with the
     // daemon. If params and meta are empty and an existing
@@ -56,26 +56,26 @@ export interface NetworkParameters {
 // useWebmesh returns a WebmeshContext.
 export function useWebmesh(opts: Options | Ref<Options>): Context {
     const client = ref({} as DaemonClient);
-    const connections = ref<Array<Network>>([]);
+    const networks = ref<Array<Network>>([]);
     const error = ref<Error | null>(null);
 
-    const upsertConnection = (conn: Network) => {
-        const i = connections.value.findIndex((c) => c.id === conn.id);
+    const upsertNetwork = (conn: Network) => {
+        const i = networks.value.findIndex((c) => c.id === conn.id);
         if (i >= 0) {
-            connections.value.splice(i, 1, conn);
+            networks.value.splice(i, 1, conn);
         } else {
-            connections.value.push(conn);
+            networks.value.push(conn);
         }
     };
 
-    const removeConnection = (id: string) => {
-        const i = connections.value.findIndex((c) => c.id === id);
+    const removeNetwork = (id: string) => {
+        const i = networks.value.findIndex((c) => c.id === id);
         if (i >= 0) {
-            connections.value.splice(i, 1);
+            networks.value.splice(i, 1);
         }
     };
 
-    const listConnections = (): Promise<Array<Network>> => {
+    const listNetworks = (): Promise<Array<Network>> => {
         return new Promise((resolve, reject) => {
             const data = new Array<Network>();
             client.value
@@ -85,7 +85,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                         const c = new Network(client.value, id, conn);
                         data.push(c);
                     }
-                    connections.value = data;
+                    networks.value = data;
                     resolve(data);
                 })
                 .catch((err: Error) => {
@@ -94,7 +94,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         });
     };
 
-    const putConnection = (params: NetworkParameters): Promise<Network> => {
+    const putNetwork = (params: NetworkParameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             client.value
                 .putConnection({
@@ -108,7 +108,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                         parameters: params.params,
                         metadata: params.meta,
                     } as GetConnectionResponse);
-                    upsertConnection(conn);
+                    upsertNetwork(conn);
                     resolve(conn);
                 })
                 .catch((err: Error) => {
@@ -117,9 +117,9 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         });
     };
 
-    const getConnection = (id: string): Promise<Network> => {
+    const getNetwork = (id: string): Promise<Network> => {
         return new Promise((resolve, reject) => {
-            const conn = connections.value.find((c) => c.id === id);
+            const conn = networks.value.find((c) => c.id === id);
             if (!conn) {
                 reject(new Error(`connection ${id} not found`));
                 return;
@@ -131,7 +131,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
     const connect = (params: NetworkParameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             if (params.meta || params.params) {
-                putConnection(params)
+                putNetwork(params)
                     .then((conn: Network) => {
                         conn.connect()
                             .then(() => resolve(conn))
@@ -143,7 +143,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                         reject(err);
                     });
             } else if (params.id) {
-                getConnection(params.id)
+                getNetwork(params.id)
                     .then((conn: Network) => {
                         conn.connect()
                             .then(() => resolve(conn))
@@ -162,7 +162,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     const disconnect = (id: string): Promise<void> => {
         return new Promise((resolve, reject) => {
-            getConnection(id)
+            getNetwork(id)
                 .then((conn: Network) => {
                     conn.disconnect()
                         .then(() => resolve())
@@ -176,7 +176,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     const drop = (id: string): Promise<void> => {
         return new Promise((resolve, reject) => {
-            getConnection(id)
+            getNetwork(id)
                 .then((conn: Network) => {
                     conn.drop()
                         .then(() => resolve())
@@ -186,14 +186,14 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                 })
                 .catch((err: Error) => reject(err))
                 .finally(() => {
-                    removeConnection(id);
+                    removeNetwork(id);
                 });
         });
     };
 
     const metrics = (id: string): Ref<InterfaceMetrics | null> => {
         const ifacemetrics = ref<InterfaceMetrics | null>(null);
-        const conn = connections.value.find((c) => c.id === id);
+        const conn = networks.value.find((c) => c.id === id);
         if (!conn) {
             throw new Error(`connection ${id} not found`);
         }
@@ -222,11 +222,11 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
             current = Options.default();
         }
         client.value = current.client();
-        listConnections().catch((err: Error) => {
+        listNetworks().catch((err: Error) => {
             error.value = err;
         });
         interval = setInterval(() => {
-            listConnections().catch((err: Error) => {
+            listNetworks().catch((err: Error) => {
                 error.value = err;
             });
         }, 3000);
@@ -244,11 +244,11 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     return {
         client,
-        connections,
+        networks,
         error,
-        listConnections,
-        putConnection,
-        getConnection,
+        listNetworks,
+        putNetwork,
+        getNetwork,
         connect,
         disconnect,
         drop,
