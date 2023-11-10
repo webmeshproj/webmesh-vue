@@ -6,8 +6,8 @@ import {
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
 import { DaemonClient } from './options';
 
-// Connection is a webmesh connection.
-export class Connection {
+// Network is a connection to a webmesh network.
+export class Network {
     public connected: boolean;
     public connectionDetails: ConnectResponse | null;
 
