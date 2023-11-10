@@ -23,9 +23,6 @@ export interface Context {
     listConnections(): Promise<Array<Connection>>;
     // PutConnection stores the parameters for a connection.
     putConnection(params: NetworkParameters): Promise<Connection>;
-    // DropConnection deletes all data for the connection with
-    // the given ID.
-    dropConnection(id: string): Promise<void>;
     // Connect creates a new connection. If no ID is given or
     // it doesn't exist, it will first be registered with the
     // daemon. If params and meta are empty and an existing
@@ -34,6 +31,8 @@ export interface Context {
     connect(params: NetworkParameters): Promise<Connection>;
     // Disconnect disconnects the given connection.
     disconnect(connectionID: string): Promise<void>;
+    // Drop deletes all data for the connection with the given ID.
+    drop(id: string): Promise<void>;
 }
 
 // NetworkParameters are the parameters for creating or updating a mesh connection.
@@ -47,12 +46,26 @@ export interface NetworkParameters {
 }
 
 // useWebmesh returns a WebmeshContext.
-export function useWebmesh(
-    opts: Options | Ref<Options>,
-): Context {
+export function useWebmesh(opts: Options | Ref<Options>): Context {
     const client = ref({} as DaemonClient);
     const connections = ref<Array<Connection>>([]);
     const error = ref<Error | null>(null);
+
+    const upsertConnection = (conn: Connection) => {
+        const i = connections.value.findIndex((c) => c.id === conn.id);
+        if (i >= 0) {
+            connections.value.splice(i, 1, conn);
+        } else {
+            connections.value.push(conn);
+        }
+    };
+
+    const removeConnection = (id: string) => {
+        const i = connections.value.findIndex((c) => c.id === id);
+        if (i >= 0) {
+            connections.value.splice(i, 1);
+        }
+    };
 
     const listConnections = (): Promise<Array<Connection>> => {
         return new Promise((resolve, reject) => {
@@ -87,32 +100,8 @@ export function useWebmesh(
                         parameters: params.params,
                         metadata: params.meta,
                     } as GetConnectionResponse);
-                    const i = connections.value.findIndex(
-                        (c) => c.id === res.id,
-                    );
-                    if (i >= 0) {
-                        connections.value.splice(i, 1, conn);
-                    } else {
-                        connections.value.push(conn);
-                    }
+                    upsertConnection(conn);
                     resolve(conn);
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
-        });
-    };
-
-    const dropConnection = (id: string): Promise<void> => {
-        return new Promise((resolve, reject) => {
-            client.value
-                .dropConnection({ id: id })
-                .then(() => {
-                    const i = connections.value.findIndex((c) => c.id === id);
-                    if (i >= 0) {
-                        connections.value.splice(i, 1);
-                    }
-                    resolve();
                 })
                 .catch((err: Error) => {
                     reject(err);
@@ -125,7 +114,11 @@ export function useWebmesh(
             if (params.meta || params.params) {
                 putConnection(params)
                     .then((conn: Connection) => {
-                        conn.connect().then(() => resolve(conn));
+                        conn.connect()
+                            .then(() => resolve(conn))
+                            .catch((err: Error) => {
+                                reject(err);
+                            });
                     })
                     .catch((err: Error) => {
                         reject(err);
@@ -138,24 +131,55 @@ export function useWebmesh(
                     reject(new Error(`connection ${params.id} not found`));
                     return;
                 }
-                conn.connect().then(() => resolve(conn));
+                conn.connect()
+                    .then(() => resolve(conn))
+                    .catch((err: Error) => {
+                        reject(err);
+                    });
             }
         });
     };
 
-    const disconnect = (connectionID: string): Promise<void> => {
+    const getConn = (id: string): Promise<Connection> => {
         return new Promise((resolve, reject) => {
             const conn = connections.value.find(
-                (c) => c.id === connectionID,
+                (c) => c.id === id,
             ) as Connection;
             if (!conn) {
-                reject(new Error(`connection ${connectionID} not found`));
+                reject(new Error(`connection ${id} not found`));
                 return;
             }
-            conn.disconnect()
-                .then(() => resolve())
-                .catch((err: Error) => {
-                    reject(err);
+            resolve(conn);
+        });
+    };
+
+    const disconnect = (id: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            getConn(id)
+                .then((conn: Connection) => {
+                    conn.disconnect()
+                        .then(() => resolve())
+                        .catch((err: Error) => {
+                            reject(err);
+                        });
+                })
+                .catch((err: Error) => reject(err));
+        });
+    };
+
+    const drop = (id: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            getConn(id)
+                .then((conn: Connection) => {
+                    conn.drop()
+                        .then(() => resolve())
+                        .catch((err: Error) => {
+                            reject(err);
+                        });
+                })
+                .catch((err: Error) => reject(err))
+                .finally(() => {
+                    removeConnection(id);
                 });
         });
     };
@@ -195,9 +219,9 @@ export function useWebmesh(
         connections,
         listConnections,
         putConnection,
-        dropConnection,
         connect,
         disconnect,
+        drop,
         error,
     } as Context;
 }
