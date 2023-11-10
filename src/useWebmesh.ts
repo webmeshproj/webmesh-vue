@@ -18,8 +18,8 @@ export interface Context {
     connections: Ref<Array<Connection>>;
     // Error is the last error that occurred.
     error: Ref<Error | null>;
-    // ListConnections lists the current connections. It also
-    // updates the connections ref.
+    // ListConnections lists the current connections. It also forces an
+    // update of the connections ref.
     listConnections(): Promise<Array<Connection>>;
     // PutConnection stores the parameters for a connection.
     putConnection(params: NetworkParameters): Promise<Connection>;
