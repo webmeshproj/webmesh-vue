@@ -1,9 +1,10 @@
 import {
     ConnectResponse,
-    ConnectionParameters,
     GetConnectionResponse,
     DaemonConnStatus,
+    MetricsResponse,
 } from '@webmeshproject/api/v1/app_pb';
+import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
 import { DaemonClient } from './options';
 
@@ -68,6 +69,23 @@ export class Network {
     // peers returns an interface for querying the peers of this connection.
     public get peers(): MeshNodes {
         return new MeshNodes(this.client, this.id);
+    }
+
+    // metrics retrieves the current metrics for the connection.
+    public metrics(): Promise<InterfaceMetrics> {
+        if (!this.connected) {
+            Promise.resolve(new InterfaceMetrics());
+        }
+        return new Promise((resolve, reject) => {
+            this.client
+                .metrics({ ids: [this.id] })
+                .then((res: MetricsResponse) => {
+                    resolve(res.interfaces[this.id]);
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
     }
 
     // connect connects to the connection.
