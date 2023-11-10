@@ -15,21 +15,22 @@ import { Network } from './network';
 export interface Context {
     // Client is the underlying client to the daemon.
     client: Ref<DaemonClient>;
-    // Network is a ref to the current list of networks.
+    // Networks is a reference to the current list of networks.
     networks: Ref<Array<Network>>;
-    // Error is the last error that occurred.
+    // Error is a reference to the last error that occurred.
     error: Ref<Error | null>;
     // ListNetworks lists the current registered networks.
-    // It also forces an update of the networks ref.
+    // It also forces an update of the networks reference.
     listNetworks(): Promise<Array<Network>>;
     // PutNetwork stores the parameters for a connection to a network.
     putNetwork(opts: NetworkParameters): Promise<Network>;
     // GetNetwork returns the network connection with the given ID.
     // It is a convenience method for finding a connection in the
-    // connections ref.
+    // networks reference.
     getNetwork(id: string): Promise<Network>;
     // Connect creates a new connection to a network. If no ID is given
     // or it doesn't exist, it will first be registered with the daemon.
+    // Parameters or metadata will always be updated first if provided.
     // If params and meta are empty and an existing connection with the
     // given ID does not already exist, it will be rejected.
     connect(opts: NetworkParameters): Promise<Network>;
