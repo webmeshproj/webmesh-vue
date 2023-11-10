@@ -10,7 +10,7 @@ import {
 import { DaemonClient, Options } from './options';
 import { Connection } from './connections';
 
-// WebmeshContext is the context for using Webmesh.
+// Context is the context for using Webmesh.
 export interface Context {
     // Client is the underlying client to the daemon.
     client: Ref<DaemonClient>;
