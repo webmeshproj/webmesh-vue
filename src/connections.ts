@@ -5,12 +5,12 @@ import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
 import { DaemonClient } from './options';
 
 // Connections is the interface for managing webmesh connections.
-export class Connections {
-    constructor(private client: DaemonClient) {}
+export class ConnectionManager {
+    constructor(private client: Ref<DaemonClient>) {}
 
     public get(id: string): Promise<Connection> {
         return new Promise((resolve, reject) => {
-            this.client
+            this.client.value
                 .getConnection({ id: id })
                 .then((res: GetConnectionResponse) => {
                     resolve(new Connection(this.client, id, res));
@@ -23,7 +23,7 @@ export class Connections {
 
     public put(id: string, params: ConnectionParameters, meta?: PartialMessage<Struct>): Promise<Connection> {
         return new Promise((resolve, reject) => {
-            this.client
+            this.client.value
                 .putConnection({
                     id: id,
                     parameters: params,
@@ -44,7 +44,7 @@ export class Connections {
 
     public delete(id: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.client
+            this.client.value
                 .dropConnection({ id: id })
                 .then(() => {
                     resolve();
@@ -55,14 +55,15 @@ export class Connections {
         })
     }
 
-    public list(): Promise<Connection[]> {
+    public list(): Promise<Array<Ref<Connection>>> {
         return new Promise((resolve, reject) => {
-            const connections: Connection[] = [];
-            this.client
+            const connections = new Array<Ref<Connection>>();
+            this.client.value
                 .listConnections({})
                 .then((resp: ListConnectionsResponse) => {
                     for (const [id, conn] of Object.entries(resp.connections)) {
-                        connections.push(new Connection(this.client, id, conn));
+                        const connref = ref<Connection>(new Connection(this.client, id, conn));
+                        connections.push(connref);
                     }
                     resolve(connections);
                 })
@@ -79,7 +80,7 @@ export class Connection {
     public connectionDetails: Ref<ConnectResponse | null>;
 
     constructor(
-        private client: DaemonClient,
+        private client: Ref<DaemonClient>,
         public id: string,
         public details: GetConnectionResponse,
     ) {
@@ -124,13 +125,13 @@ export class Connection {
 
     // peers returns an interface for querying the peers of this connection.
     public get peers(): MeshNodes {
-        return new MeshNodes(this.client, this.id);
+        return new MeshNodes(this.client.value, this.id);
     }
 
     // connect connects to the connection.
     public connect(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.client
+            this.client.value
                 .connect({ id: this.id })
                 .then((res: ConnectResponse) => {
                     this.connected.value = true;
@@ -146,7 +147,7 @@ export class Connection {
     // disconnect disconnects from the connection.
     public disconnect(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.client
+            this.client.value
                 .disconnect({ id: this.id })
                 .then(() => {
                     this.connected.value = false;
