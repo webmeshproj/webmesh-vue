@@ -15,6 +15,29 @@ export interface WebmeshContext {
     error: Ref<Error | null>;
 }
 
+// useWebmesh returns a WebmeshContext.
+export function useWebmesh(opts: WebmeshOptions | Ref<WebmeshOptions>): WebmeshContext {
+    const client = ref({} as DaemonClient);
+    const connections = ref(new Connections(client.value));
+    const error = ref(null);
+    const createClient = () => {
+        let current = toValue(opts);
+        if (!current) {
+            current = WebmeshOptions.default();
+        }
+        client.value = current.client();
+        connections.value = new Connections(current.client());
+    }
+    watchEffect(() => {
+        createClient();
+    });
+    return {
+        client,
+        connections,
+        error,
+    } as WebmeshContext;
+}
+
 // Connections is the interface for managing webmesh connections.
 export class Connections {
     constructor(private client: DaemonClient) {}
@@ -24,27 +47,3 @@ export class Connections {
 export class Connection {
     constructor(private client: DaemonClient, private connectionID: string) {}
 };
-
-// useWebmesh returns a WebmeshContext.
-export function useWebmesh(opts: WebmeshOptions | Ref<WebmeshOptions>): WebmeshContext {
-    if (!opts) {
-        opts = WebmeshOptions.default();
-    }
-    const client = ref(toValue(opts).client());
-    const connections = ref(new Connections(client.value));
-    const error = ref(null);
-
-    const updateClient = () => {
-        client.value = toValue(opts).client();
-        connections.value = new Connections(client.value);
-    }
-    watchEffect(() => {
-        updateClient();
-    });
-
-    return {
-        client,
-        connections,
-        error,
-    } as WebmeshContext;
-}
