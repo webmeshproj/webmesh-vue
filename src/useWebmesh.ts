@@ -38,7 +38,12 @@ export function useWebmesh(
         }
         client.value = current.client();
         connectionManager.value = new ConnectionManager(current.client());
-        setInterval(() => {
+        connectionManager.value.list().then((conns: Array<Connection>) => {
+            connections.value = conns;
+        }).catch((err: Error) => {
+            error.value = err;
+        });
+        interval = setInterval(() => {
             connectionManager.value.list().then((conns: Array<Connection>) => {
                 connections.value = conns;
             }).catch((err: Error) => {
