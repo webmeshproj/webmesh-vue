@@ -18,6 +18,9 @@ const DefaultNamespace = 'webmesh';
 // DefaultDaemonAddress is the default daemon address.
 const DefaultDaemonAddress = 'http://127.0.0.1:58080';
 
+// DaemonClient is a type alias for the PromiseClient of the AppDaemon service.
+export type DaemonClient = PromiseClient<typeof AppDaemon>;
+
 // DaemonOptions are the options for communicating with the daemon.
 export interface DaemonOptions {
     daemonAddress: string;
@@ -58,7 +61,7 @@ export class WebmeshOptions implements DaemonOptions {
         });
     }
 
-    public client(): PromiseClient<typeof AppDaemon> {
+    public client(): DaemonClient {
         return createPromiseClient(AppDaemon, this.tranport());
     }
 }
