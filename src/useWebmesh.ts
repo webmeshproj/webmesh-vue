@@ -8,7 +8,7 @@ import {
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
 import { DaemonClient, Options } from './options';
-import { Network } from './connections';
+import { Network } from './network';
 
 // Context is the context for using Webmesh.
 export interface Context {
@@ -115,9 +115,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     const getConnection = (id: string): Promise<Network> => {
         return new Promise((resolve, reject) => {
-            const conn = connections.value.find(
-                (c) => c.id === id,
-            ) as Network;
+            const conn = connections.value.find((c) => c.id === id) as Network;
             if (!conn) {
                 reject(new Error(`connection ${id} not found`));
                 return;

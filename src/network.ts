@@ -1,5 +1,6 @@
 import {
     ConnectResponse,
+    ConnectionParameters,
     GetConnectionResponse,
     DaemonConnStatus,
 } from '@webmeshproject/api/v1/app_pb';
@@ -9,59 +10,59 @@ import { DaemonClient } from './options';
 // Network is a connection to a webmesh network.
 export class Network {
     public connected: boolean;
-    public connectionDetails: ConnectResponse | null;
+    public details: ConnectResponse | null;
 
     constructor(
         public client: DaemonClient,
         public id: string,
-        public details: GetConnectionResponse,
+        public connnection: GetConnectionResponse,
     ) {
-        this.connected = details.status === DaemonConnStatus.CONNECTED;
-        this.connectionDetails = this.connected
+        this.connected = connnection.status === DaemonConnStatus.CONNECTED;
+        this.details = this.connected
             ? ({
-                  nodeID: details.node?.id,
-                  ipv4Address: details.node?.privateIPv4,
-                  ipv6Address: details.node?.privateIPv6,
-                  ipv4Network: details.ipv4Network,
-                  ipv6Network: details.ipv6Network,
-                  meshDomain: details.domain,
+                  nodeID: connnection.node?.id,
+                  ipv4Address: connnection.node?.privateIPv4,
+                  ipv6Address: connnection.node?.privateIPv6,
+                  ipv4Network: connnection.ipv4Network,
+                  ipv6Network: connnection.ipv6Network,
+                  meshDomain: connnection.domain,
               } as ConnectResponse)
             : null;
     }
 
     // nodeID returns the node ID of the connection.
     public get nodeID(): string {
-        return this.connectionDetails?.nodeID || '';
+        return this.details?.nodeID || '';
     }
 
     // ipv4Address returns the IPv4 address of the connection.
     public get ipv4Address(): string {
-        return this.connectionDetails?.ipv4Address || '';
+        return this.details?.ipv4Address || '';
     }
 
     // ipv6Address returns the IPv6 address of the connection.
     public get ipv6Address(): string {
-        return this.connectionDetails?.ipv6Address || '';
+        return this.details?.ipv6Address || '';
     }
 
     // ipv4Network returns the IPv4 network of the connection.
     public get ipv4Network(): string {
-        return this.connectionDetails?.ipv4Network || '';
+        return this.details?.ipv4Network || '';
     }
 
     // ipv6Network returns the IPv6 network of the connection.
     public get ipv6Network(): string {
-        return this.connectionDetails?.ipv6Network || '';
+        return this.details?.ipv6Network || '';
     }
 
     // domain returns the domain of the connection.
     public get domain(): string {
-        return this.connectionDetails?.meshDomain || '';
+        return this.details?.meshDomain || '';
     }
 
     // fqdn returns the fully qualified domain name of the connection.
     public get fqdn(): string {
-        return this.nodeID + '.' + this.domain;
+        return this.connected ? this.nodeID + '.' + this.domain : '';
     }
 
     // peers returns an interface for querying the peers of this connection.
@@ -79,7 +80,7 @@ export class Network {
                 .connect({ id: this.id })
                 .then((res: ConnectResponse) => {
                     this.connected = true;
-                    this.connectionDetails = res;
+                    this.details = res;
                     resolve();
                 })
                 .catch((err: Error) => {
@@ -98,7 +99,7 @@ export class Network {
                 .disconnect({ id: this.id })
                 .then(() => {
                     this.connected = false;
-                    this.connectionDetails = null;
+                    this.details = null;
                     resolve();
                 })
                 .catch((err: Error) => {
@@ -125,15 +126,16 @@ export class Network {
                     .catch((err: Error) => {
                         reject(err);
                     });
+            } else {
+                this.client
+                    .dropConnection({ id: this.id })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((err: Error) => {
+                        reject(err);
+                    });
             }
-            this.client
-                .dropConnection({ id: this.id })
-                .then(() => {
-                    resolve();
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
         });
     }
 }
