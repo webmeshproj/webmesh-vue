@@ -19,6 +19,11 @@ export class Connection {
         return this.connectionDetails.id;
     }
 
+    // nodeID returns the node ID of the connection.
+    public get nodeID(): string {
+        return this.connectionDetails.nodeID;
+    }
+
     // ipv4Address returns the IPv4 address of the connection.
     public get ipv4Address(): string {
         return this.connectionDetails.ipv4Address;
@@ -46,7 +51,7 @@ export class Connection {
 
     // fqdn returns the fully qualified domain name of the connection.
     public get fqdn(): string {
-        return this.id + '.' + this.domain;
+        return this.nodeID + '.' + this.domain;
     }
 
     // peers returns an interface for querying the peers of this connection.
