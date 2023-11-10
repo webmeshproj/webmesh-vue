@@ -120,6 +120,7 @@ export function useWebmesh(
 
     const connect = (params: NetworkParameters): Promise<Connection> => {
         return new Promise((resolve, reject) => {
+            if (params.meta || params.params) {
             putConnection(params)
                 .then((conn: Connection) => {
                     conn.connect().then(() => resolve(conn));
@@ -127,6 +128,16 @@ export function useWebmesh(
                 .catch((err: Error) => {
                     reject(err);
                 });
+            } else {
+                const conn = connections.value.find(
+                    (c) => c.id === params.id,
+                ) as Connection;
+                if (!conn) {
+                    reject(new Error(`connection ${params.id} not found`));
+                    return;
+                }
+                conn.connect().then(() => resolve(conn));
+            }
         });
     };
 
