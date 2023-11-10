@@ -30,12 +30,12 @@ export interface DaemonOptions {
 // WebmeshOptions are the options for using Webmesh. They are a superset of
 // DaemonOptions and can be used to inherit the daemon address and namespace
 // from the environment.
-export class WebmeshOptions implements DaemonOptions {
+export class Options implements DaemonOptions {
     daemonAddress: string;
     namespace: string;
 
-    static default(): WebmeshOptions {
-        return new WebmeshOptions();
+    static default(): Options {
+        return new Options();
     }
 
     constructor(opts?: Partial<DaemonOptions>) {

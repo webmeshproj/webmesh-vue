@@ -7,11 +7,11 @@ import {
     DaemonConnStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
-import { DaemonClient, WebmeshOptions } from './options';
+import { DaemonClient, Options } from './options';
 import { Connection } from './connections';
 
 // WebmeshContext is the context for using Webmesh.
-export interface WebmeshContext {
+export interface Context {
     // Client is the underlying client to the daemon.
     client: Ref<DaemonClient>;
     // Connections is a ref to the current list of connections.
@@ -48,8 +48,8 @@ export interface NetworkParameters {
 
 // useWebmesh returns a WebmeshContext.
 export function useWebmesh(
-    opts: WebmeshOptions | Ref<WebmeshOptions>,
-): WebmeshContext {
+    opts: Options | Ref<Options>,
+): Context {
     const client = ref({} as DaemonClient);
     const connections = ref<Array<Connection>>([]);
     const error = ref<Error | null>(null);
@@ -167,7 +167,7 @@ export function useWebmesh(
         }
         let current = toValue(opts);
         if (!current) {
-            current = WebmeshOptions.default();
+            current = Options.default();
         }
         client.value = current.client();
         listConnections().catch((err: Error) => {
@@ -199,5 +199,5 @@ export function useWebmesh(
         connect,
         disconnect,
         error,
-    } as WebmeshContext;
+    } as Context;
 }
