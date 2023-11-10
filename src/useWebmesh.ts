@@ -54,13 +54,14 @@ export function useWebmesh(
 
     const connect = (connectionID: string): Promise<Connection> => {
         return new Promise((resolve, reject) => {
-            connectionManager.value.get(connectionID)
-            .then((connection: Connection) => {
-                connection.connect().then(() => {
-                    resolve(connection);
-                }).catch((err: Error) => {
-                    reject(err);
-                });
+            const conn = connections.value.find((c) => c.id === connectionID) as Connection;
+            if (!conn) {
+                reject(new Error(`connection ${connectionID} not found`));
+                return;
+            }
+            conn.connect()
+            .then(() => {
+                resolve(conn);
             })
             .catch((err: Error) => {
                 reject(err);
@@ -70,8 +71,12 @@ export function useWebmesh(
 
     const disconnect = (connectionID: string): Promise<void> => {
         return new Promise((resolve, reject) => {
-            client.value
-                .disconnect({ id: connectionID })
+            const conn = connections.value.find((c) => c.id === connectionID) as Connection;
+            if (!conn) {
+                reject(new Error(`connection ${connectionID} not found`));
+                return;
+            }
+            conn.disconnect()
                 .then(() => resolve())
                 .catch((err: Error) => {
                     reject(err);
