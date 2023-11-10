@@ -1,2 +1,3 @@
-import { WebmeshOptions, WebmeshContext, useWebmesh } from './src/useWebmesh';
+import { WebmeshOptions } from './src/options';
+import { WebmeshContext, useWebmesh } from './src/useWebmesh';
 export { WebmeshOptions, WebmeshContext, useWebmesh };
