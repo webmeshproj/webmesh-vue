@@ -23,17 +23,16 @@ export interface Context {
     // It also forces an update of the networks ref.
     listNetworks(): Promise<Array<Network>>;
     // PutNetwork stores the parameters for a connection to a network.
-    putNetwork(params: NetworkParameters): Promise<Network>;
+    putNetwork(opts: NetworkParameters): Promise<Network>;
     // GetNetwork returns the network connection with the given ID.
     // It is a convenience method for finding a connection in the
     // connections ref.
     getNetwork(id: string): Promise<Network>;
-    // Connect creates a new connection. If no ID is given or
-    // it doesn't exist, it will first be registered with the
-    // daemon. If params and meta are empty and an existing
-    // connection with the given ID does not already exist,
-    // it will be rejected.
-    connect(params: NetworkParameters): Promise<Network>;
+    // Connect creates a new connection to a network. If no ID is given
+    // or it doesn't exist, it will first be registered with the daemon.
+    // If params and meta are empty and an existing connection with the
+    // given ID does not already exist, it will be rejected.
+    connect(opts: NetworkParameters): Promise<Network>;
     // Disconnect disconnects the given connection.
     disconnect(id: string): Promise<void>;
     // Drop disconnects and deletes all data for the connection with the given ID.
