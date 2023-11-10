@@ -1,78 +1,10 @@
-import { Ref, ref } from 'vue';
-import { PartialMessage, Struct } from '@bufbuild/protobuf';
-import { ConnectResponse, ConnectionParameters, GetConnectionResponse, PutConnectionResponse, DaemonConnStatus, ListConnectionsResponse } from '@webmeshproject/api/v1/app_pb';
+import {
+    ConnectResponse,
+    GetConnectionResponse,
+    DaemonConnStatus,
+} from '@webmeshproject/api/v1/app_pb';
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
 import { DaemonClient } from './options';
-
-// Connections is the interface for managing webmesh connections.
-export class ConnectionManager {
-    constructor(public client: DaemonClient) {}
-
-    public get(id: string): Promise<Connection> {
-        return new Promise((resolve, reject) => {
-            this.client
-                .getConnection({ id: id })
-                .then((res: GetConnectionResponse) => {
-                    resolve(new Connection(this.client, id, res));
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
-        });
-    }
-
-    public put(id: string, params: ConnectionParameters, meta?: PartialMessage<Struct>): Promise<Connection> {
-        return new Promise((resolve, reject) => {
-            this.client
-                .putConnection({
-                    id: id,
-                    parameters: params,
-                    metadata: meta,
-                })
-                .then((res: PutConnectionResponse) => {
-                    resolve(new Connection(this.client, res.id, {
-                        status: DaemonConnStatus.DISCONNECTED,
-                        parameters: params,
-                        metadata: meta,
-                    } as GetConnectionResponse));
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
-        });
-    }
-
-    public delete(id: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client
-                .dropConnection({ id: id })
-                .then(() => {
-                    resolve();
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
-        })
-    }
-
-    public list(): Promise<Array<Connection>> {
-        return new Promise((resolve, reject) => {
-            const connections = new Array<Connection>();
-            this.client
-                .listConnections({})
-                .then((resp: ListConnectionsResponse) => {
-                    for (const [id, conn] of Object.entries(resp.connections)) {
-                        const c = new Connection(this.client, id, conn);
-                        connections.push(c);
-                    }
-                    resolve(connections);
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
-        });
-    }
-}
 
 // Connection is a webmesh connection.
 export class Connection {
@@ -84,8 +16,17 @@ export class Connection {
         public id: string,
         public details: GetConnectionResponse,
     ) {
-        this.connected = false;
-        this.connectionDetails = null;
+        this.connected = details.status === DaemonConnStatus.CONNECTED;
+        this.connectionDetails = this.connected
+            ? ({
+                  nodeID: details.node?.id,
+                  ipv4Address: details.node?.privateIPv4,
+                  ipv6Address: details.node?.privateIPv6,
+                  ipv4Network: details.ipv4Network,
+                  ipv6Network: details.ipv6Network,
+                  meshDomain: details.domain,
+              } as ConnectResponse)
+            : null;
     }
 
     // nodeID returns the node ID of the connection.
@@ -130,6 +71,9 @@ export class Connection {
 
     // connect connects to the connection.
     public connect(): Promise<void> {
+        if (this.connected) {
+            return Promise.reject(new Error('already connected'));
+        }
         return new Promise((resolve, reject) => {
             this.client
                 .connect({ id: this.id })
@@ -146,12 +90,45 @@ export class Connection {
 
     // disconnect disconnects from the connection.
     public disconnect(): Promise<void> {
+        if (!this.connected) {
+            return Promise.reject(new Error('not connected'));
+        }
         return new Promise((resolve, reject) => {
             this.client
                 .disconnect({ id: this.id })
                 .then(() => {
                     this.connected = false;
                     this.connectionDetails = null;
+                    resolve();
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    }
+
+    // drop drops the connection.
+    public drop(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (this.connected) {
+                this.disconnect()
+                    .then(() => {
+                        this.client
+                            .dropConnection({ id: this.id })
+                            .then(() => {
+                                resolve();
+                            })
+                            .catch((err: Error) => {
+                                reject(err);
+                            });
+                    })
+                    .catch((err: Error) => {
+                        reject(err);
+                    });
+            }
+            this.client
+                .dropConnection({ id: this.id })
+                .then(() => {
                     resolve();
                 })
                 .catch((err: Error) => {
