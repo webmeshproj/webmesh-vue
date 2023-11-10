@@ -16,10 +16,27 @@ export interface WebmeshContext {
 }
 
 // useWebmesh returns a WebmeshContext.
-export function useWebmesh(opts: WebmeshOptions | Ref<WebmeshOptions>): WebmeshContext {
+export function useWebmesh(
+    opts: WebmeshOptions | Ref<WebmeshOptions>,
+): WebmeshContext {
     const client = ref({} as DaemonClient);
     const connections = ref(new Connections(client.value));
     const error = ref(null);
+    const connect = (connectionID: string): Promise<Connection> => {
+        const conn = new Connection(client.value, connectionID);
+        // TODO: Connect to the connection.
+        return Promise.resolve(conn);
+    };
+    const disconnect = (connectionID: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            client.value
+                .disconnect({ id: connectionID })
+                .then(() => resolve())
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    };
     const createClient = () => {
         let current = toValue(opts);
         if (!current) {
@@ -27,13 +44,15 @@ export function useWebmesh(opts: WebmeshOptions | Ref<WebmeshOptions>): WebmeshC
         }
         client.value = current.client();
         connections.value = new Connections(current.client());
-    }
+    };
     watchEffect(() => {
         createClient();
     });
     return {
         client,
         connections,
+        connect,
+        disconnect,
         error,
     } as WebmeshContext;
 }
@@ -41,9 +60,12 @@ export function useWebmesh(opts: WebmeshOptions | Ref<WebmeshOptions>): WebmeshC
 // Connections is the interface for managing webmesh connections.
 export class Connections {
     constructor(private client: DaemonClient) {}
-};
+}
 
 // Connection is a webmesh connection.
 export class Connection {
-    constructor(private client: DaemonClient, private connectionID: string) {}
-};
+    constructor(
+        private client: DaemonClient,
+        private connectionID: string,
+    ) {}
+}
