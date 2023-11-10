@@ -9,7 +9,7 @@ export interface WebmeshContext {
     // Connections is the interface for managing webmesh connections.
     connectionManager: Ref<ConnectionManager>;
     // Connections is a ref to the current list of connections.
-    connections: Array<Ref<Connection>>;
+    connections: Ref<Array<Ref<Connection>>>;
     // Connect creates a connection to the given ID.
     connect(connectionID: string): Promise<Connection>;
     // Disconnect disconnects the given connection.
