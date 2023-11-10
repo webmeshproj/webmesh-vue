@@ -30,8 +30,8 @@ export interface Context {
     // it will be rejected.
     connect(params: NetworkParameters): Promise<Connection>;
     // Disconnect disconnects the given connection.
-    disconnect(connectionID: string): Promise<void>;
-    // Drop deletes all data for the connection with the given ID.
+    disconnect(id: string): Promise<void>;
+    // Drop disconnects and deletes all data for the connection with the given ID.
     drop(id: string): Promise<void>;
 }
 
