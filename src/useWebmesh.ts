@@ -23,11 +23,13 @@ export interface WebmeshContext {
     listConnections(): Promise<Array<Connection>>;
     // PutConnection stores the parameters for a connection.
     putConnection(params: NetworkParameters): Promise<Connection>;
-    // DropConnection deletes all data for the connection with the given ID.
+    // DropConnection deletes all data for the connection with
+    // the given ID.
     dropConnection(id: string): Promise<void>;
-    // Connect creates a new connection. If no ID is given or it doesn't exist,
-    // it will first be registered with the daemon. If params and meta are empty
-    // and an existing connection with the given ID does not already exist,
+    // Connect creates a new connection. If no ID is given or
+    // it doesn't exist, it will first be registered with the
+    // daemon. If params and meta are empty and an existing
+    // connection with the given ID does not already exist,
     // it will be rejected.
     connect(params: NetworkParameters): Promise<Connection>;
     // Disconnect disconnects the given connection.
@@ -121,13 +123,13 @@ export function useWebmesh(
     const connect = (params: NetworkParameters): Promise<Connection> => {
         return new Promise((resolve, reject) => {
             if (params.meta || params.params) {
-            putConnection(params)
-                .then((conn: Connection) => {
-                    conn.connect().then(() => resolve(conn));
-                })
-                .catch((err: Error) => {
-                    reject(err);
-                });
+                putConnection(params)
+                    .then((conn: Connection) => {
+                        conn.connect().then(() => resolve(conn));
+                    })
+                    .catch((err: Error) => {
+                        reject(err);
+                    });
             } else {
                 const conn = connections.value.find(
                     (c) => c.id === params.id,
