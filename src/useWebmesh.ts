@@ -1,5 +1,4 @@
 import { Ref, ref, toValue, watchEffect } from 'vue';
-import { ConnectResponse } from '@webmeshproject/api/v1/app_pb';
 import { DaemonClient, WebmeshOptions } from './options';
 import { Connection, Connections } from './connections';
 
@@ -34,14 +33,17 @@ export function useWebmesh(
     };
     const connect = (connectionID: string): Promise<Connection> => {
         return new Promise((resolve, reject) => {
-            client.value
-                .connect({ id: connectionID })
-                .then((res: ConnectResponse) => {
-                    resolve(new Connection(client.value, res));
-                })
-                .catch((err: Error) => {
+            connections.value.get(connectionID)
+            .then((connection: Connection) => {
+                connection.connect().then(() => {
+                    resolve(connection);
+                }).catch((err: Error) => {
                     reject(err);
                 });
+            })
+            .catch((err: Error) => {
+                reject(err);
+            });
         });
     };
     const disconnect = (connectionID: string): Promise<void> => {

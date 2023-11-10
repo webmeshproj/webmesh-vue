@@ -1,52 +1,120 @@
-import { DaemonClient } from './options';
-import { ConnectResponse } from '@webmeshproject/api/v1/app_pb';
+import { Ref, ref } from 'vue';
+import { PartialMessage, Struct } from '@bufbuild/protobuf';
+import { ConnectResponse, ConnectionParameters, GetConnectionResponse, PutConnectionResponse, DaemonConnStatus, ListConnectionsResponse } from '@webmeshproject/api/v1/app_pb';
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
+import { DaemonClient } from './options';
 
 // Connections is the interface for managing webmesh connections.
 export class Connections {
     constructor(private client: DaemonClient) {}
+
+    public get(id: string): Promise<Connection> {
+        return new Promise((resolve, reject) => {
+            this.client
+                .getConnection({ id: id })
+                .then((res: GetConnectionResponse) => {
+                    resolve(new Connection(this.client, id, res));
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    }
+
+    public put(id: string, params: ConnectionParameters, meta?: PartialMessage<Struct>): Promise<Connection> {
+        return new Promise((resolve, reject) => {
+            this.client
+                .putConnection({
+                    id: id,
+                    parameters: params,
+                    metadata: meta,
+                })
+                .then((res: PutConnectionResponse) => {
+                    resolve(new Connection(this.client, res.id, {
+                        status: DaemonConnStatus.DISCONNECTED,
+                        parameters: params,
+                        metadata: meta,
+                    } as GetConnectionResponse));
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    }
+
+    public delete(id: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.client
+                .dropConnection({ id: id })
+                .then(() => {
+                    resolve();
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        })
+    }
+
+    public list(): Promise<Connection[]> {
+        return new Promise((resolve, reject) => {
+            const connections: Connection[] = [];
+            this.client
+                .listConnections({})
+                .then((resp: ListConnectionsResponse) => {
+                    for (const [id, conn] of Object.entries(resp.connections)) {
+                        connections.push(new Connection(this.client, id, conn));
+                    }
+                    resolve(connections);
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    }
 }
 
 // Connection is a webmesh connection.
 export class Connection {
+    public connected: Ref<boolean>;
+    public connectionDetails: Ref<ConnectResponse | null>;
+
     constructor(
         private client: DaemonClient,
-        private connectionDetails: ConnectResponse,
-    ) {}
-
-    // id returns the ID of the connection.
-    public get id(): string {
-        return this.connectionDetails.id;
+        public id: string,
+        public details: GetConnectionResponse,
+    ) {
+        this.connected = ref(false);
+        this.connectionDetails = ref(null);
     }
 
     // nodeID returns the node ID of the connection.
     public get nodeID(): string {
-        return this.connectionDetails.nodeID;
+        return this.connectionDetails.value?.nodeID || '';
     }
 
     // ipv4Address returns the IPv4 address of the connection.
     public get ipv4Address(): string {
-        return this.connectionDetails.ipv4Address;
+        return this.connectionDetails.value?.ipv4Address || '';
     }
 
     // ipv6Address returns the IPv6 address of the connection.
     public get ipv6Address(): string {
-        return this.connectionDetails.ipv6Address;
+        return this.connectionDetails.value?.ipv6Address || '';
     }
 
     // ipv4Network returns the IPv4 network of the connection.
     public get ipv4Network(): string {
-        return this.connectionDetails.ipv4Network;
+        return this.connectionDetails.value?.ipv4Network || '';
     }
 
     // ipv6Network returns the IPv6 network of the connection.
     public get ipv6Network(): string {
-        return this.connectionDetails.ipv6Network;
+        return this.connectionDetails.value?.ipv6Network || '';
     }
 
     // domain returns the domain of the connection.
     public get domain(): string {
-        return this.connectionDetails.meshDomain;
+        return this.connectionDetails.value?.meshDomain || '';
     }
 
     // fqdn returns the fully qualified domain name of the connection.
@@ -65,7 +133,8 @@ export class Connection {
             this.client
                 .connect({ id: this.id })
                 .then((res: ConnectResponse) => {
-                    this.connectionDetails = res;
+                    this.connected.value = true;
+                    this.connectionDetails.value = res;
                     resolve();
                 })
                 .catch((err: Error) => {
@@ -79,7 +148,11 @@ export class Connection {
         return new Promise((resolve, reject) => {
             this.client
                 .disconnect({ id: this.id })
-                .then(() => resolve())
+                .then(() => {
+                    this.connected.value = false;
+                    this.connectionDetails.value = null;
+                    resolve();
+                })
                 .catch((err: Error) => {
                     reject(err);
                 });
