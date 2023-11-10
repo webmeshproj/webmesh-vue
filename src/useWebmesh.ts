@@ -23,9 +23,16 @@ export function useWebmesh(
     const connections = ref(new Connections(client.value));
     const error = ref(null);
     const connect = (connectionID: string): Promise<Connection> => {
-        const conn = new Connection(client.value, connectionID);
-        // TODO: Connect to the connection.
-        return Promise.resolve(conn);
+        return new Promise((resolve, reject) => {
+            client.value
+                .connect({ id: connectionID })
+                .then((res) => {
+                    resolve(new Connection(client.value, res.id));
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
     };
     const disconnect = (connectionID: string): Promise<void> => {
         return new Promise((resolve, reject) => {
