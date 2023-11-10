@@ -23,6 +23,10 @@ export interface Context {
     listConnections(): Promise<Array<Connection>>;
     // PutConnection stores the parameters for a connection.
     putConnection(params: NetworkParameters): Promise<Connection>;
+    // GetConnection returns the connection with the given ID.
+    // It is a convenience method for finding a connection in the
+    // connections ref.
+    getConnection(id: string): Promise<Connection>;
     // Connect creates a new connection. If no ID is given or
     // it doesn't exist, it will first be registered with the
     // daemon. If params and meta are empty and an existing
@@ -109,7 +113,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         });
     };
 
-    const getConn = (id: string): Promise<Connection> => {
+    const getConnection = (id: string): Promise<Connection> => {
         return new Promise((resolve, reject) => {
             const conn = connections.value.find(
                 (c) => c.id === id,
@@ -137,7 +141,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                         reject(err);
                     });
             } else if (params.id) {
-                getConn(params.id)
+                getConnection(params.id)
                     .then((conn: Connection) => {
                         conn.connect()
                             .then(() => resolve(conn))
@@ -156,7 +160,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     const disconnect = (id: string): Promise<void> => {
         return new Promise((resolve, reject) => {
-            getConn(id)
+            getConnection(id)
                 .then((conn: Connection) => {
                     conn.disconnect()
                         .then(() => resolve())
@@ -170,7 +174,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
 
     const drop = (id: string): Promise<void> => {
         return new Promise((resolve, reject) => {
-            getConn(id)
+            getConnection(id)
                 .then((conn: Connection) => {
                     conn.drop()
                         .then(() => resolve())
@@ -220,6 +224,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         connections,
         listConnections,
         putConnection,
+        getConnection,
         connect,
         disconnect,
         drop,
