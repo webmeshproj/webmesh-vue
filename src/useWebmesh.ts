@@ -109,6 +109,19 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         });
     };
 
+    const getConn = (id: string): Promise<Connection> => {
+        return new Promise((resolve, reject) => {
+            const conn = connections.value.find(
+                (c) => c.id === id,
+            ) as Connection;
+            if (!conn) {
+                reject(new Error(`connection ${id} not found`));
+                return;
+            }
+            resolve(conn);
+        });
+    };
+
     const connect = (params: NetworkParameters): Promise<Connection> => {
         return new Promise((resolve, reject) => {
             if (params.meta || params.params) {
@@ -123,33 +136,21 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
                     .catch((err: Error) => {
                         reject(err);
                     });
-            } else {
-                const conn = connections.value.find(
-                    (c) => c.id === params.id,
-                ) as Connection;
-                if (!conn) {
-                    reject(new Error(`connection ${params.id} not found`));
-                    return;
-                }
-                conn.connect()
-                    .then(() => resolve(conn))
+            } else if (params.id) {
+                getConn(params.id)
+                    .then((conn: Connection) => {
+                        conn.connect()
+                            .then(() => resolve(conn))
+                            .catch((err: Error) => {
+                                reject(err);
+                            });
+                    })
                     .catch((err: Error) => {
                         reject(err);
                     });
+            } else {
+                reject(new Error('no connection parameters provided'));
             }
-        });
-    };
-
-    const getConn = (id: string): Promise<Connection> => {
-        return new Promise((resolve, reject) => {
-            const conn = connections.value.find(
-                (c) => c.id === id,
-            ) as Connection;
-            if (!conn) {
-                reject(new Error(`connection ${id} not found`));
-                return;
-            }
-            resolve(conn);
         });
     };
 
