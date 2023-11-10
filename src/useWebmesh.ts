@@ -196,7 +196,7 @@ export function useWebmesh(opts: Options | Ref<Options>): Context {
         if (!conn) {
             throw new Error(`connection ${id} not found`);
         }
-        let interval = setInterval(() => {
+        const interval = setInterval(() => {
             conn.metrics()
                 .then((metrics: InterfaceMetrics) => {
                     ifacemetrics.value = metrics;
