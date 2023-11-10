@@ -88,7 +88,7 @@ export function useWebmesh(
                         metadata: params.meta,
                     } as GetConnectionResponse);
                     const i = connections.value.findIndex(
-                        (c) => c.id === params.id,
+                        (c) => c.id === res.id,
                     );
                     if (i >= 0) {
                         connections.value.splice(i, 1, conn);
