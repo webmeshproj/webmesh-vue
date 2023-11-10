@@ -1,4 +1,3 @@
-import { Ref, ref } from 'vue';
 import {
     Interceptor,
     PromiseClient,
@@ -62,7 +61,7 @@ export class WebmeshOptions implements DaemonOptions {
         });
     }
 
-    public client(): Ref<DaemonClient> {
-        return ref(createPromiseClient(AppDaemon, this.tranport()));
+    public client(): DaemonClient {
+        return createPromiseClient(AppDaemon, this.tranport());
     }
 }

@@ -9,7 +9,7 @@ export interface WebmeshContext {
     // Connections is the interface for managing webmesh connections.
     connectionManager: Ref<ConnectionManager>;
     // Connections is a ref to the current list of connections.
-    connections: Ref<Array<Ref<Connection>>>;
+    connections: Ref<Array<Connection>>;
     // Connect creates a connection to the given ID.
     connect(connectionID: string): Promise<Connection>;
     // Disconnect disconnects the given connection.
@@ -23,8 +23,8 @@ export function useWebmesh(
     opts: WebmeshOptions | Ref<WebmeshOptions>,
 ): WebmeshContext {
     const client = ref({} as DaemonClient);
-    const connectionManager = ref(new ConnectionManager(client));
-    const connections = ref<Array<Ref<Connection>>>([]);
+    const connectionManager = ref(new ConnectionManager(client.value));
+    const connections = ref<Array<Connection>>([]);
     const error = ref<Error | null>(null);
 
     let interval: NodeJS.Timeout;
@@ -36,16 +36,17 @@ export function useWebmesh(
         if (!current) {
             current = WebmeshOptions.default();
         }
-        client.value = current.client().value;
+        client.value = current.client();
         connectionManager.value = new ConnectionManager(current.client());
         setInterval(() => {
-            connectionManager.value.list().then((conns: Array<Ref<Connection>>) => {
-                connections.value = conns ;
+            connectionManager.value.list().then((conns: Array<Connection>) => {
+                connections.value = conns;
             }).catch((err: Error) => {
                 error.value = err;
             });
-        })
+        }, 3000)
     };
+
     const connect = (connectionID: string): Promise<Connection> => {
         return new Promise((resolve, reject) => {
             connectionManager.value.get(connectionID)
@@ -61,6 +62,7 @@ export function useWebmesh(
             });
         });
     };
+
     const disconnect = (connectionID: string): Promise<void> => {
         return new Promise((resolve, reject) => {
             client.value
@@ -71,14 +73,17 @@ export function useWebmesh(
                 });
         });
     };
+
     watchEffect(() => {
         newClient();
     });
+
     onUnmounted(() => {
         if (interval) {
             clearInterval(interval);
         }
     })
+
     return {
         client,
         connectionManager,
