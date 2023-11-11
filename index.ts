@@ -8,14 +8,17 @@ import {
 import { Metrics, Network } from './src/network';
 import { Context, useWebmesh } from './src/useWebmesh';
 
-export {
+export type {
+    Metrics,
     DaemonClient,
+    NetworkParameters,
+}
+
+export {
     Defaults,
     Options,
     Context,
-    Metrics,
     Network,
-    NetworkParameters,
     Parameters,
     useWebmesh,
 };
