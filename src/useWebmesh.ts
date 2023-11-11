@@ -256,6 +256,8 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         }
     });
 
+    newClient();
+
     return {
         client,
         networks,
