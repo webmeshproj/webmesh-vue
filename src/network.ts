@@ -6,7 +6,7 @@ import {
 } from '@webmeshproject/api/v1/app_pb';
 import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
-import { DaemonClient } from './options';
+import { DaemonClient, NetworkParameters } from './options';
 
 // Metrics is a type alias to InterfaceMetrics for easier use with this package.
 export type Metrics = InterfaceMetrics;
@@ -32,6 +32,20 @@ export class Network {
                   meshDomain: connnection.domain,
               } as ConnectResponse)
             : null;
+    }
+
+    // params returns the parameters for the connection.
+    public get params(): NetworkParameters {
+        return {
+            id: this.id,
+            params: this.connnection.parameters || {},
+            meta: this.connnection.metadata || {},
+        } as NetworkParameters;
+    }
+
+    // status returns the current status of the connection.
+    public get status(): DaemonConnStatus {
+        return this.connnection.status;
     }
 
     // nodeID returns the node ID of the connection.

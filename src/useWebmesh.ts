@@ -6,7 +6,7 @@ import {
     DaemonStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
-import { DaemonClient, Parameters, Options } from './options';
+import { DaemonClient, Parameters, NetworkParameters, Options } from './options';
 import { Network, Metrics } from './network';
 
 
@@ -25,7 +25,7 @@ export interface Context {
     // It also forces an update of the networks reference.
     listNetworks(): Promise<Array<Network>>;
     // PutNetwork stores the parameters for a connection to a network.
-    putNetwork(opts: Parameters): Promise<Network>;
+    putNetwork(opts: NetworkParameters): Promise<Network>;
     // GetNetwork returns the network connection with the given ID.
     // It is a convenience method for finding a connection in the
     // networks reference.
@@ -99,7 +99,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const putNetwork = (params: Parameters): Promise<Network> => {
+    const putNetwork = (params: NetworkParameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             client.value
                 .putConnection({
@@ -136,7 +136,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
     const connect = (params: Parameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             if (params.meta || params.params) {
-                putNetwork(params)
+                putNetwork(params as NetworkParameters)
                     .then((conn: Network) => {
                         conn.connect()
                             .then(() => resolve(conn))
@@ -202,12 +202,8 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         if (!conn) {
             throw new Error(`connection ${id} not found`);
         }
-        if (!conn.connected) {
-            throw new Error(`connection ${id} not connected`);
-        }
         const interval = setInterval(() => {
             if (!conn.connected) {
-                clearInterval(interval);
                 return;
             }
             conn.metrics()
