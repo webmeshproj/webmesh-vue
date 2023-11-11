@@ -3,6 +3,7 @@ import {
     GetConnectionResponse,
     PutConnectionResponse,
     DaemonConnStatus,
+    DaemonStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
 import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
@@ -17,6 +18,8 @@ export interface Context {
     networks: Ref<Array<Network>>;
     // Error is a reference to the last error that occurred.
     error: Ref<Error | null>;
+    // DaemonStatus returns the status of the daemon.
+    daemonStatus(): Promise<DaemonStatus>;
     // ListNetworks lists the current registered networks.
     // It also forces an update of the networks reference.
     listNetworks(): Promise<Array<Network>>;
@@ -62,6 +65,19 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
             networks.value.splice(i, 1);
         }
     };
+
+    const daemonStatus = (): Promise<DaemonStatus> => {
+        return new Promise((resolve, reject) => {
+            client.value
+                .status({})
+                .then((resp: DaemonStatus) => {
+                    resolve(resp);
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
+        });
+    }
 
     const listNetworks = (): Promise<Array<Network>> => {
         return new Promise((resolve, reject) => {
@@ -234,6 +250,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         client,
         networks,
         error,
+        daemonStatus,
         listNetworks,
         putNetwork,
         getNetwork,
