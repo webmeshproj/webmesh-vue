@@ -237,7 +237,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
             listNetworks().catch((err: Error) => {
                 error.value = err;
             });
-        }, 3000);
+        }, 5000);
     };
 
     watchEffect(() => {
