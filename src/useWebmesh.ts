@@ -42,7 +42,7 @@ export interface Context {
     drop(id: string): Promise<void>;
     // Metrics returns a reference to interface metrics that will be updated until
     // the component is unmounted.
-    metrics(id: string): Ref<Metrics | null>;
+    metrics(id: string, pollInterval?: number): Ref<Metrics | null>;
 }
 
 // useWebmesh returns a WebmeshContext.
@@ -196,11 +196,14 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const metrics = (id: string): Ref<Metrics | null> => {
+    const metrics = (id: string, pollInterval?: number): Ref<Metrics | null> => {
         const ifacemetrics = ref<Metrics | null>(null);
         const conn = networks.value.find((c) => c.id === id);
         if (!conn) {
             throw new Error(`connection ${id} not found`);
+        }
+        if (!pollInterval) {
+            pollInterval = 5000;
         }
         const interval = setInterval(() => {
             if (!conn.connected) {
@@ -213,7 +216,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
                 .catch((err: Error) => {
                     error.value = err;
                 });
-        }, 3000);
+        }, pollInterval);
         onUnmounted(() => {
             clearInterval(interval);
         });
@@ -237,7 +240,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
             listNetworks().catch((err: Error) => {
                 error.value = err;
             });
-        }, 5000);
+        }, current.pollInterval);
     };
 
     watchEffect(() => {

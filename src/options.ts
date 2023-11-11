@@ -32,6 +32,7 @@ export type DaemonClient = PromiseClient<typeof AppDaemon>;
 export interface DaemonOptions {
     daemonAddress: string;
     namespace: string;
+    pollInterval?: number;
 }
 
 // WebmeshOptions are the options for using Webmesh. They are a superset of
@@ -40,12 +41,18 @@ export interface DaemonOptions {
 export class Options implements DaemonOptions {
     daemonAddress: string;
     namespace: string;
+    pollInterval: number;
 
     static default(): Options {
         return new Options();
     }
 
     constructor(opts?: Partial<DaemonOptions>) {
+        if (opts?.pollInterval && opts.pollInterval > 0) {
+            this.pollInterval = opts.pollInterval;
+        } else {
+            this.pollInterval = 5000;
+        }
         this.daemonAddress = opts?.daemonAddress ?? DefaultDaemonAddress;
         this.namespace =
             opts?.namespace ?? process.env.npm_package_name ?? DefaultNamespace;
