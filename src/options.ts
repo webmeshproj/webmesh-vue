@@ -9,7 +9,14 @@ import {
     createPromiseClient,
 } from '@connectrpc/connect';
 import { createGrpcWebTransport } from '@connectrpc/connect-web';
+import { PartialMessage, Struct } from '@bufbuild/protobuf';
+import {
+    ConnectionParameters,
+    NetworkAuthMethod,
+    MeshConnBootstrap_DefaultNetworkACL as DefaultNetworkACL,
+} from '@webmeshproject/api/v1/app_pb';
 import { AppDaemon } from '@webmeshproject/api/v1/app_connect';
+import { Feature } from '@webmeshproject/api/v1/node_pb';
 
 // NamespaceHeader designates the header used to specify the namespace.
 const NamespaceHeader = 'x-webmesh-namespace';
@@ -63,5 +70,64 @@ export class Options implements DaemonOptions {
 
     public client(): DaemonClient {
         return createPromiseClient(AppDaemon, this.tranport());
+    }
+}
+
+// NetworkParameters are the parameters for creating or updating a mesh connection.
+export interface NetworkParameters {
+    // A unique ID for the connection. If not provided the daemon will generate one.
+    id?: string;
+    // The parameters for connecting to the network.
+    params?: ConnectionParameters;
+    // Arbitrary metadata for the connection.
+    meta?: PartialMessage<Struct>;
+}
+
+// Defaults are the default values for network parameters.
+export class Defaults {
+    static authMethod: NetworkAuthMethod = NetworkAuthMethod.NO_AUTH;
+    static networkACL: DefaultNetworkACL = DefaultNetworkACL.ACCEPT;
+    static meshDomain: string = 'webmesh.internal';
+    static ipv4Network: string = '172.16.0.0/12';
+    static listenAddress: string = '[::]:8443';
+    static dnsListenUDP: string = '[::]:53';
+    static dnsListenTCP: string = '[::]:53';
+
+    static parameters(): NetworkParameters {
+        return {
+            id: '',
+            meta: {},
+            params: {
+                authMethod: this.authMethod,
+                authCredentials: {},
+                networking: {
+                    detectEndpoints: false,
+                    detectPrivateEndpoints: false,
+                    useDNS: false,
+                },
+                bootstrap: {
+                    enabled: false,
+                    domain: this.meshDomain,
+                    ipv4Network: this.ipv4Network,
+                    rbacEnabled: false,
+                    defaultNetworkACL: this.networkACL,
+                },
+                tls: {
+                    enabled: false,
+                    skipVerify: false,
+                    verifyChainOnly: false,
+                },
+                services: {
+                    enabled: false,
+                    listenAddress: this.listenAddress,
+                    features: [] as Feature[],
+                    dns: {
+                        enabled: false,
+                        listenUDP: this.dnsListenUDP,
+                        listenTCP: this.dnsListenTCP,
+                    },
+                },
+            },
+        } as NetworkParameters;
     }
 }

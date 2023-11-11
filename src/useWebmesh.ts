@@ -1,14 +1,13 @@
 import { Ref, ref, toValue, watchEffect, onUnmounted } from 'vue';
 import { PartialMessage, Struct } from '@bufbuild/protobuf';
 import {
-    ConnectionParameters,
     GetConnectionResponse,
     PutConnectionResponse,
     DaemonConnStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
 import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
-import { DaemonClient, Options } from './options';
+import { DaemonClient, NetworkParameters, Options } from './options';
 import { Network } from './network';
 
 // Context is the context for using Webmesh.
@@ -41,16 +40,6 @@ export interface Context {
     // Metrics returns a reference to interface metrics that will be updated until
     // the component is unmounted.
     metrics(id: string): Ref<InterfaceMetrics | null>;
-}
-
-// NetworkParameters are the parameters for creating or updating a mesh connection.
-export interface NetworkParameters {
-    // A unique ID for the connection. If not provided the daemon will generate one.
-    id?: string;
-    // The parameters for connecting to the network.
-    params?: ConnectionParameters;
-    // Arbitrary metadata for the connection.
-    meta?: PartialMessage<Struct>;
 }
 
 // useWebmesh returns a WebmeshContext.
