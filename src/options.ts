@@ -73,8 +73,18 @@ export class Options implements DaemonOptions {
     }
 }
 
+export type RecursiveRequired<T> = Required<{
+    [P in keyof T]: T[P] extends object | undefined
+      ? RecursiveRequired<Required<T[P]>>
+      : T[P];
+  }>;
+
+export type NetworkParameters = RecursiveRequired<
+    Partial<Parameters>
+>;
+
 // NetworkParameters are the parameters for creating or updating a mesh connection.
-export interface NetworkParameters {
+export interface Parameters {
     // A unique ID for the connection. If not provided the daemon will generate one.
     id?: string;
     // The parameters for connecting to the network.

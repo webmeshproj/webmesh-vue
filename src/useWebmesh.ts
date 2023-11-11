@@ -6,7 +6,7 @@ import {
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
 import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
-import { DaemonClient, NetworkParameters, Options } from './options';
+import { DaemonClient, Parameters, Options } from './options';
 import { Network } from './network';
 
 // Context is the context for using Webmesh.
@@ -21,7 +21,7 @@ export interface Context {
     // It also forces an update of the networks reference.
     listNetworks(): Promise<Array<Network>>;
     // PutNetwork stores the parameters for a connection to a network.
-    putNetwork(opts: NetworkParameters): Promise<Network>;
+    putNetwork(opts: Parameters): Promise<Network>;
     // GetNetwork returns the network connection with the given ID.
     // It is a convenience method for finding a connection in the
     // networks reference.
@@ -31,7 +31,7 @@ export interface Context {
     // Parameters or metadata will always be updated first if provided.
     // If params and meta are empty and an existing connection with the
     // given ID does not already exist, it will be rejected.
-    connect(opts: NetworkParameters): Promise<Network>;
+    connect(opts: Parameters): Promise<Network>;
     // Disconnect disconnects the given connection.
     disconnect(id: string): Promise<void>;
     // Drop disconnects and deletes all data for the connection with the given ID.
@@ -82,7 +82,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const putNetwork = (params: NetworkParameters): Promise<Network> => {
+    const putNetwork = (params: Parameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             client.value
                 .putConnection({
@@ -116,7 +116,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const connect = (params: NetworkParameters): Promise<Network> => {
+    const connect = (params: Parameters): Promise<Network> => {
         return new Promise((resolve, reject) => {
             if (params.meta || params.params) {
                 putNetwork(params)
