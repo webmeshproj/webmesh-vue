@@ -201,14 +201,14 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
 
     const metrics = (id: string, pollInterval?: number): Ref<Metrics | null> => {
         const ifacemetrics = ref<Metrics | null>(null);
-        const conn = networks.value.find((c) => c.id === id);
-        if (!conn) {
-            throw new Error(`connection ${id} not found`);
-        }
         if (!pollInterval) {
             pollInterval = 5000;
         }
         const interval = setInterval(() => {
+            const conn = networks.value.find((c) => c.id === id);
+            if (!conn) {
+                return;
+            }
             if (!conn.connected) {
                 return;
             }
