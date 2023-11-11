@@ -8,6 +8,9 @@ import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
 import { MeshNodes } from '@webmeshproject/api/utils/rpcdb';
 import { DaemonClient } from './options';
 
+// Metrics is a type alias to InterfaceMetrics for easier use with this package.
+export type Metrics = InterfaceMetrics;
+
 // Network is a connection to a webmesh network.
 export class Network {
     public connected: boolean;
@@ -72,7 +75,7 @@ export class Network {
     }
 
     // metrics retrieves the current metrics for the connection.
-    public metrics(): Promise<InterfaceMetrics> {
+    public metrics(): Promise<Metrics> {
         if (!this.connected) {
             Promise.resolve(new InterfaceMetrics());
         }

@@ -6,9 +6,10 @@ import {
     DaemonStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
-import { InterfaceMetrics } from '@webmeshproject/api/v1/node_pb';
 import { DaemonClient, Parameters, Options } from './options';
-import { Network } from './network';
+import { Network, Metrics } from './network';
+
+
 
 // Context is the context for using Webmesh.
 export interface Context {
@@ -41,7 +42,7 @@ export interface Context {
     drop(id: string): Promise<void>;
     // Metrics returns a reference to interface metrics that will be updated until
     // the component is unmounted.
-    metrics(id: string): Ref<InterfaceMetrics | null>;
+    metrics(id: string): Ref<Metrics | null>;
 }
 
 // useWebmesh returns a WebmeshContext.
@@ -195,8 +196,8 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const metrics = (id: string): Ref<InterfaceMetrics | null> => {
-        const ifacemetrics = ref<InterfaceMetrics | null>(null);
+    const metrics = (id: string): Ref<Metrics | null> => {
+        const ifacemetrics = ref<Metrics | null>(null);
         const conn = networks.value.find((c) => c.id === id);
         if (!conn) {
             throw new Error(`connection ${id} not found`);
@@ -210,7 +211,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
                 return;
             }
             conn.metrics()
-                .then((metrics: InterfaceMetrics) => {
+                .then((metrics: Metrics) => {
                     ifacemetrics.value = metrics;
                 })
                 .catch((err: Error) => {
@@ -220,7 +221,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         onUnmounted(() => {
             clearInterval(interval);
         });
-        return ifacemetrics as Ref<InterfaceMetrics | null>;
+        return ifacemetrics as Ref<Metrics | null>;
     };
 
     let interval: NodeJS.Timeout;
