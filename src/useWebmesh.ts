@@ -30,6 +30,8 @@ export interface Context {
     // It is a convenience method for finding a connection in the
     // networks reference.
     getNetwork(id: string): Promise<Network>;
+    // DropNetwork disconnects and deletes all data for the connection with the given ID.
+    dropNetwork(id: string): Promise<void>;
     // Connect creates a new connection to a network. If no ID is given
     // or it doesn't exist, it will first be registered with the daemon.
     // Parameters or metadata will always be updated first if provided.
@@ -38,8 +40,6 @@ export interface Context {
     connect(opts: Parameters): Promise<Network>;
     // Disconnect disconnects the given connection.
     disconnect(id: string): Promise<void>;
-    // Drop disconnects and deletes all data for the connection with the given ID.
-    drop(id: string): Promise<void>;
     // Metrics returns a reference to interface metrics that will be updated until
     // the component is unmounted.
     metrics(id: string, pollInterval?: number): Ref<Metrics | null>;
@@ -179,12 +179,15 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const drop = (id: string): Promise<void> => {
+    const dropNetwork = (id: string): Promise<void> => {
         return new Promise((resolve, reject) => {
             getNetwork(id)
                 .then((conn: Network) => {
                     conn.drop()
-                        .then(() => resolve())
+                        .then(() => {
+                            removeNetwork(id);
+                            resolve()
+                        })
                         .catch((err: Error) => {
                             reject(err);
                         });
@@ -263,7 +266,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         getNetwork,
         connect,
         disconnect,
-        drop,
+        dropNetwork,
         metrics,
     } as Context;
 }
