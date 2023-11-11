@@ -95,6 +95,7 @@ export interface Parameters {
 
 // Defaults are the default values for network parameters.
 export class Defaults {
+    static daemonAddress: string = 'http://127.0.0.1:58080'
     static authMethod: NetworkAuthMethod = NetworkAuthMethod.NO_AUTH;
     static networkACL: DefaultNetworkACL = DefaultNetworkACL.ACCEPT;
     static meshDomain: string = 'webmesh.internal';
