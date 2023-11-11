@@ -42,7 +42,7 @@ export interface Context {
 }
 
 // useWebmesh returns a WebmeshContext.
-export function useWebmesh(opts: Options | Ref<Options>): Context {
+export function useWebmesh(opts?: Options | Ref<Options>): Context {
     const client = ref({} as DaemonClient);
     const networks = ref<Array<Network>>([]);
     const error = ref<Error | null>(null);
