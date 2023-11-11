@@ -1,5 +1,4 @@
 import { Ref, ref, toValue, watchEffect, onUnmounted } from 'vue';
-import { PartialMessage, Struct } from '@bufbuild/protobuf';
 import {
     GetConnectionResponse,
     PutConnectionResponse,
