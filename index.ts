@@ -12,13 +12,13 @@ export type {
     Metrics,
     DaemonClient,
     NetworkParameters,
+    Parameters,
+    Context,
 }
 
 export {
     Defaults,
     Options,
-    Context,
     Network,
-    Parameters,
     useWebmesh,
 };
