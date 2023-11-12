@@ -2,5 +2,11 @@
     "$schema": "https://typedoc.org/schema.json",
     "entryPoints": ["index.ts", "src/"],
     "entryPointStrategy": "expand",
-    "out": "docs"
+    "out": "docs",
+    "navigationLinks": {
+        "Webmesh API Types": "https://webmeshproj.github.io/api/"
+    },
+    "sidebarLinks": {
+        "Webmesh API": "https://webmeshproj.github.io/api/"
+    }
 }
