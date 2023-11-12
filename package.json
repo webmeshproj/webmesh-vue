@@ -1,6 +1,6 @@
 {
     "name": "@webmeshproject/vue",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "description": "Vue composables for working with a webmesh daemon",
     "main": "index.ts",
     "type": "module",
@@ -33,7 +33,7 @@
     "dependencies": {
         "@connectrpc/connect": "^1.1.3",
         "@connectrpc/connect-web": "^1.1.3",
-        "@webmeshproject/api": "^0.12.6",
+        "@webmeshproject/api": "^0.12.7",
         "vue": "^3.3.0"
     }
 }

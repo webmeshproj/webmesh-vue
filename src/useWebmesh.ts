@@ -26,7 +26,7 @@ import {
 export class DaemonOptions extends Options {
     constructor(opts?: Partial<DaemonOptions>) {
         if (!opts) {
-            opts = Options.default();
+            opts = Options.defaults();
         }
         opts.transport = createGrpcWebTransport({
             baseUrl: opts.daemonAddress || DefaultDaemonAddress,
