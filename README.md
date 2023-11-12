@@ -83,7 +83,7 @@ return { networks, createNetwork, removeNetwork };
 import { ref } from 'vue';
 import { Network, useWebmesh } from '@webmeshproject/vue';
 
-const { connect, disconnect, deviceMetrics } = useWebmesh(daemon.options);
+const { connect, disconnect, deviceMetrics } = useWebmesh();
 const networkID = 'test-network';
 
 const metrics = deviceMetrics(networkID, 3000);
