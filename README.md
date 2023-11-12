@@ -21,21 +21,23 @@ Typedocs can be found [here](https://webmeshproj.github.io/webmesh-vue/).
 <div>
   <h1>Networks</h1>
   <ul>
-    <li v-for="network in networks" :key="network.name">
-      <span>{{ network.name }}</span>
-      <button @click="() => removeNetwork(network.name)">Remove</button>
+    <li v-for="network in networks" :key="network.id">
+      <span>{{ network.id }}</span>
+      <button @click="() => removeNetwork(network.id)">Remove</button>
     </li>
   </ul>
-  <form @submit.prevent="createNetwork({ id: networkName })">
-    <input v-model="networkName" />
+  <form @submit.prevent="createNetwork({ id: networkID })">
+    <input v-model="networkID" />
     <button type="submit">Create</button>
   </form>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { NetworkParameters, useWebmesh } from '@webmeshproject/vue';
 
 const { putNetwork, dropNetwork, networks } = useWebmesh();
+const networkID = ref('');
 
 const createNetwork = async (params: NetworkParameters) => {
   try {
@@ -45,15 +47,15 @@ const createNetwork = async (params: NetworkParameters) => {
   }
 }
 
-const removeNetwork = async (name: string) => {
+const removeNetwork = async (id: string) => {
   try {
-    await dropNetwork(name);
+    await dropNetwork(id);
   } catch (err) {
     console.error(err)
   }
 }
 
-return { networks, createNetwork, removeNetwork };
+return { networkID, networks, createNetwork, removeNetwork };
 </script>
 ```
 
@@ -63,7 +65,7 @@ return { networks, createNetwork, removeNetwork };
 <template>
     <div>
         <div v-if="network?.connected">
-            <h1>Connected to {{ network?.name }}</h1>
+            <h1>Connected to {{ network?.id }}</h1>
             <button @click="disconnectFromNetwork">Disconnect</button>
             <div>
                 <h2>Metrics</h2>
