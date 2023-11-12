@@ -1,19 +1,21 @@
 {
     "name": "@webmeshproject/vue",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "Vue composables for working with a webmesh daemon",
     "main": "index.ts",
     "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "format": "prettier --write \"**/*.{js,ts,md,json}\" --ignore-path .gitignore"
+        "format": "prettier --write \"**/*.{js,ts,md,json}\" --ignore-path .gitignore",
+        "docs": "typedoc --name 'Webmesh Vue'"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/webmeshproj/webmesh-vue.git"
     },
     "keywords": [
-        "vue"
+        "vue",
+        "webmesh"
     ],
     "author": "Avi Zimmerman",
     "license": "Apache-2.0",
@@ -25,6 +27,7 @@
         "@types/node": "^20.9.0",
         "prettier": "^3.0.3",
         "tsx": "^4.0.0",
+        "typedoc": "^0.25.3",
         "typescript": "^5.2.2"
     },
     "dependencies": {

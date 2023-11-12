@@ -55,7 +55,7 @@ return { networks, createNetwork, removeNetwork };
 </script>
 ```
 
-### Connecting and disconnecting networks.
+### Connecting and disconnecting networks
 
 ```vue
 <template>
