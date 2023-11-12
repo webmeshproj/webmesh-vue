@@ -10,6 +10,8 @@ npm install @webmeshproject/vue
 yarn add @webmeshproject/vue
 ```
 
+Typedocs can be found [here](https://webmeshproject.github.io/webmesh-vue/).
+
 ## Usage
 
 ### Managing networks
