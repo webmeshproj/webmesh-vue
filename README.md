@@ -74,7 +74,9 @@ return { networks, createNetwork, removeNetwork };
         </div>
     </div>
 </template>
+```
 
+```vue
 <script setup>
 import { ref } from 'vue';
 import { Network, useWebmesh } from '@webmeshproject/vue';
