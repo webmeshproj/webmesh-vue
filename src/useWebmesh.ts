@@ -1,4 +1,5 @@
 import { Ref, ref, toValue, watchEffect, onUnmounted } from 'vue';
+import { createGrpcWebTransport } from '@connectrpc/connect-web';
 import {
     GetConnectionResponse,
     PutConnectionResponse,
@@ -6,45 +7,98 @@ import {
     DaemonStatus,
     ListConnectionsResponse,
 } from '@webmeshproject/api/v1/app_pb';
-import { DaemonClient, Parameters, NetworkParameters, Options } from './options';
-import { Network, Metrics } from './network';
+import {
+    Network,
+    NetworkParameters,
+    Parameters,
+    Metrics,
+} from '@webmeshproject/api/utils/networks';
+import {
+    DaemonClient,
+    Options,
+    DefaultNamespace,
+    DefaultDaemonAddress,
+} from '@webmeshproject/api/utils/daemon';
 
+/**
+ * DaemonOptions are options for connecting to a daemon process.
+ */
+export class DaemonOptions extends Options {
+    constructor(opts?: Partial<DaemonOptions>) {
+        if (!opts) {
+            opts = Options.default();
+        }
+        opts.transport = createGrpcWebTransport({
+            baseUrl: opts.daemonAddress || DefaultDaemonAddress,
+            interceptors: [
+                Options.interceptor(opts.namespace || DefaultNamespace),
+            ],
+        });
+        super(opts);
+    }
+}
 
-
-// Context is the context for using Webmesh.
+/**
+ * Context is the context for a Webmesh component.
+ */
 export interface Context {
-    // Client is the underlying client to the daemon.
+    /**
+     * client is a reference to the current daemon client.
+     */
     client: Ref<DaemonClient>;
-    // Networks is a reference to the current list of networks.
+    /**
+     * networks is a reference to the current list of networks.
+     */
     networks: Ref<Array<Network>>;
-    // Error is a reference to the last error that occurred.
+    /**
+     * error is a reference to the current error.
+     */
     error: Ref<Error | null>;
-    // DaemonStatus returns the status of the daemon.
+    /**
+     * daemonStatus returns the current status of the daemon.
+     */
     daemonStatus(): Promise<DaemonStatus>;
-    // ListNetworks lists the current registered networks.
-    // It also forces an update of the networks reference.
+    /**
+     * listNetworks returns the current list of networks.
+     */
     listNetworks(): Promise<Array<Network>>;
-    // PutNetwork stores the parameters for a connection to a network.
+    /**
+     * putNetwork creates a new network connection.
+     */
     putNetwork(opts: NetworkParameters): Promise<Network>;
-    // GetNetwork returns the network connection with the given ID.
-    // It is a convenience method for finding and refreshing the status
-    // of a network.
+    /**
+     * getNetwork returns the network connection with the given ID.
+     * It is a convenience method for finding and refreshing the status
+     * of a network.
+     */
     getNetwork(id: string): Promise<Network>;
-    // DropNetwork disconnects and deletes all data for the connection with the given ID.
+    /**
+     * DropNetwork disconnects and deletes all data for the connection with the given ID.
+     */
     dropNetwork(id: string): Promise<void>;
-    // Connect creates a new connection to a network. It is semantically equivalent to
-    // calling PutNetwork followed by Connect on the returned network. If no parameters
-    // are given, the connection with the given ID is connected.
+    /**
+     * connect creates a new connection to a network. It is semantically equivalent to
+     * calling PutNetwork followed by Connect on the returned network. If no parameters
+     * are given, the connection with the given ID is connected.
+     */
     connect(opts: Parameters): Promise<Network>;
-    // Disconnect disconnects from the given network ID.
+    /**
+     * disconnect disconnects the network with the given ID.
+     */
     disconnect(id: string): Promise<void>;
-    // DeviceMetrics returns a reference to interface metrics that will be updated until
-    // the component is unmounted.
+    /**
+     * deviceMetrics returns a reference to the current device metrics for the network
+     * with the given ID. If pollInterval is provided, the metrics will be polled at
+     * the given interval, otherwise it defaults to a 5 second interval. The polling
+     * will stop when the component is unmounted.
+     */
     deviceMetrics(id: string, pollInterval?: number): Ref<Metrics | null>;
 }
 
-// useWebmesh returns a WebmeshContext.
-export function useWebmesh(opts?: Options | Ref<Options>): Context {
+/**
+ * useWebmesh returns a context for a Webmesh component.
+ */
+export function useWebmesh(opts?: DaemonOptions | Ref<DaemonOptions>): Context {
     const client = ref({} as DaemonClient);
     const networks = ref<Array<Network>>([]);
     const error = ref<Error | null>(null);
@@ -76,7 +130,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
                     reject(err);
                 });
         });
-    }
+    };
 
     const listNetworks = (): Promise<Array<Network>> => {
         return new Promise((resolve, reject) => {
@@ -122,7 +176,8 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
 
     const getNetwork = (id: string): Promise<Network> => {
         return new Promise((resolve, reject) => {
-            client.value.getConnection({ id: id })
+            client.value
+                .getConnection({ id: id })
                 .then((res: GetConnectionResponse) => {
                     const conn = new Network(client.value, id, res);
                     upsertNetwork(conn);
@@ -187,7 +242,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
                     conn.drop()
                         .then(() => {
                             removeNetwork(id);
-                            resolve()
+                            resolve();
                         })
                         .catch((err: Error) => {
                             reject(err);
@@ -200,7 +255,10 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const deviceMetrics = (id: string, pollInterval?: number): Ref<Metrics | null> => {
+    const deviceMetrics = (
+        id: string,
+        pollInterval?: number,
+    ): Ref<Metrics | null> => {
         const ifacemetrics = ref<Metrics | null>(null);
         if (!pollInterval) {
             pollInterval = 5000;
@@ -234,7 +292,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         }
         let current = toValue(opts);
         if (!current) {
-            current = Options.default();
+            current = new DaemonOptions();
         }
         client.value = current.client();
         listNetworks().catch((err: Error) => {

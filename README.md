@@ -87,7 +87,7 @@ const { connect, disconnect, deviceMetrics } = useWebmesh();
 const networkID = 'test-network';
 
 const metrics = deviceMetrics(networkID, 3000);
-const network = ref<Network | null>(null);
+const network = (ref < Network) | (null > null);
 
 const connectToNetwork = async () => {
     try {
