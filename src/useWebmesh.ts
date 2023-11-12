@@ -27,22 +27,20 @@ export interface Context {
     // PutNetwork stores the parameters for a connection to a network.
     putNetwork(opts: NetworkParameters): Promise<Network>;
     // GetNetwork returns the network connection with the given ID.
-    // It is a convenience method for finding a connection in the
-    // networks reference.
+    // It is a convenience method for finding and refreshing the status
+    // of a network.
     getNetwork(id: string): Promise<Network>;
     // DropNetwork disconnects and deletes all data for the connection with the given ID.
     dropNetwork(id: string): Promise<void>;
-    // Connect creates a new connection to a network. If no ID is given
-    // or it doesn't exist, it will first be registered with the daemon.
-    // Parameters or metadata will always be updated first if provided.
-    // If params and meta are empty and an existing connection with the
-    // given ID does not already exist, it will be rejected.
+    // Connect creates a new connection to a network. It is semantically equivalent to
+    // calling PutNetwork followed by Connect on the returned network. If no parameters
+    // are given, the connection with the given ID is connected.
     connect(opts: Parameters): Promise<Network>;
-    // Disconnect disconnects the given connection.
+    // Disconnect disconnects from the given network ID.
     disconnect(id: string): Promise<void>;
-    // Metrics returns a reference to interface metrics that will be updated until
+    // DeviceMetrics returns a reference to interface metrics that will be updated until
     // the component is unmounted.
-    metrics(id: string, pollInterval?: number): Ref<Metrics | null>;
+    deviceMetrics(id: string, pollInterval?: number): Ref<Metrics | null>;
 }
 
 // useWebmesh returns a WebmeshContext.
@@ -124,12 +122,15 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
 
     const getNetwork = (id: string): Promise<Network> => {
         return new Promise((resolve, reject) => {
-            const conn = networks.value.find((c) => c.id === id);
-            if (!conn) {
-                reject(new Error(`connection ${id} not found`));
-                return;
-            }
-            resolve(conn as Network);
+            client.value.getConnection({ id: id })
+                .then((res: GetConnectionResponse) => {
+                    const conn = new Network(client.value, id, res);
+                    upsertNetwork(conn);
+                    resolve(conn);
+                })
+                .catch((err: Error) => {
+                    reject(err);
+                });
         });
     };
 
@@ -199,7 +200,7 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         });
     };
 
-    const metrics = (id: string, pollInterval?: number): Ref<Metrics | null> => {
+    const deviceMetrics = (id: string, pollInterval?: number): Ref<Metrics | null> => {
         const ifacemetrics = ref<Metrics | null>(null);
         if (!pollInterval) {
             pollInterval = 5000;
@@ -269,6 +270,6 @@ export function useWebmesh(opts?: Options | Ref<Options>): Context {
         connect,
         disconnect,
         dropNetwork,
-        metrics,
+        deviceMetrics,
     } as Context;
 }
