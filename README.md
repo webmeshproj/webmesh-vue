@@ -76,18 +76,16 @@ return { networks, createNetwork, removeNetwork };
         </div>
     </div>
 </template>
-```
 
-```vue
 <script setup>
 import { ref } from 'vue';
 import { Network, useWebmesh } from '@webmeshproject/vue';
 
-const { connect, disconnect, deviceMetrics } = useWebmesh();
+const { connect, disconnect, deviceMetrics } = useWebmesh(daemon.options);
 const networkID = 'test-network';
 
 const metrics = deviceMetrics(networkID, 3000);
-const network = (ref < Network) | (null > null);
+const network = ref<Network | null>(null);
 
 const connectToNetwork = async () => {
     try {
