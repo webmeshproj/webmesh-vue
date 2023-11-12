@@ -10,7 +10,7 @@ npm install @webmeshproject/vue
 yarn add @webmeshproject/vue
 ```
 
-Typedocs can be found [here](https://webmeshproject.github.io/webmesh-vue/).
+Typedocs can be found [here](https://webmeshproj.github.io/webmesh-vue/).
 
 ## Usage
 
@@ -87,7 +87,7 @@ const { connect, disconnect, deviceMetrics } = useWebmesh(daemon.options);
 const networkID = 'test-network';
 
 const metrics = deviceMetrics(networkID, 3000);
-const network = ref<Network | null>(null);
+const network = (ref < Network) | (null > null);
 
 const connectToNetwork = async () => {
     try {
