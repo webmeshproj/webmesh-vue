@@ -1,6 +1,6 @@
 {
     "name": "@webmeshproject/vue",
-    "version": "0.0.11",
+    "version": "0.0.12",
     "description": "Vue composables for working with a webmesh daemon",
     "main": "index.ts",
     "type": "module",
