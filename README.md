@@ -14,6 +14,8 @@ Typedocs can be found [here](https://webmeshproj.github.io/webmesh-vue/).
 
 ## Usage
 
+For a more complete example refer to the [webmesh-app](https://github.com/webmeshproj/webmesh-app) repository, which is a Quasar app using this library.
+
 ### Managing networks
 
 ```vue
