@@ -1,4 +1,5 @@
 import {
+    Defaults,
     Network,
     NetworkParameters,
     Parameters,
@@ -18,6 +19,7 @@ export {
     DefaultNamespace,
     DefaultDaemonAddress,
     DaemonOptions,
+    Defaults,
     Options,
     Network,
     useWebmesh,
