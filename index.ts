@@ -12,15 +12,13 @@ import {
 } from '@webmeshproject/api/utils/daemon';
 import { DaemonOptions, Context, useWebmesh } from './src/useWebmesh';
 
-export type { DaemonClient, Metrics, NetworkParameters };
+export type { Parameters, Context, DaemonClient, Metrics, NetworkParameters };
 
 export {
     DefaultNamespace,
     DefaultDaemonAddress,
-    Context,
     DaemonOptions,
     Options,
-    Parameters,
     Network,
     useWebmesh,
 };
