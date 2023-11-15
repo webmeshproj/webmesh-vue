@@ -20,18 +20,19 @@ For a more complete example refer to the [webmesh-app](https://github.com/webmes
 
 ```vue
 <template>
-<div>
-  <h1>Networks</h1>
-  <ul>
-    <li v-for="network in networks" :key="network.id">
-      <span>{{ network.id }}</span>
-      <button @click="() => removeNetwork(network.id)">Remove</button>
-    </li>
-  </ul>
-  <form @submit.prevent="createNetwork({ id: networkID })">
-    <input v-model="networkID" />
-    <button type="submit">Create</button>
-  </form>
+    <div>
+        <h1>Networks</h1>
+        <ul>
+            <li v-for="network in networks" :key="network.id">
+                <span>{{ network.id }}</span>
+                <button @click="() => removeNetwork(network.id)">Remove</button>
+            </li>
+        </ul>
+        <form @submit.prevent="createNetwork({ id: networkID })">
+            <input v-model="networkID" />
+            <button type="submit">Create</button>
+        </form>
+    </div>
 </template>
 
 <script setup>
