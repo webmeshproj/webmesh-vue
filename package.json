@@ -1,12 +1,12 @@
 {
     "name": "@webmeshproject/vue",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "description": "Vue composables for working with a webmesh daemon",
     "main": "index.ts",
     "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "format": "prettier --write \"**/*.{js,ts,md,json}\" --ignore-path .gitignore",
+        "format": "prettier --write \"**/*.{js,ts,json}\" --ignore-path .gitignore",
         "docs": "typedoc --name 'Webmesh Vue'"
     },
     "repository": {
